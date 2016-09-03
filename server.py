@@ -3,6 +3,7 @@ import struct
 import binascii
 import os
 import requests
+import datetime
 
 playing = False
 rawSocket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW,
@@ -37,7 +38,14 @@ def send(playing ):
   else:
     payload = playPayload
   response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
-  print(response.text, not playing)
+  st = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+  if response.status_code == 200:
+    status = "Paused" if playing else "Now Playing"
+    playing = not playing
+    print st, status
+  else:
+    print response
+  return playing
 while True:
     packet = rawSocket.recvfrom(2048)
     ethernet_header = packet[0][0:14]
@@ -50,5 +58,4 @@ while True:
     source_mac = binascii.hexlify(arp_detailed[5])
     dest_ip = socket.inet_ntoa(arp_detailed[8])
     if source_mac == mac:
-        send(playing)
-        playing = not playing
+        playing = send(playing)
