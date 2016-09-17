@@ -1,5 +1,6 @@
-FROM python:3.5
-RUN apt-get update && apt-get install libpcap-dev -qy
-RUN pip install requests
-COPY . /tmp
-CMD /bin/bash -c "source /tmp/.env && python /tmp/server.py"
+FROM python:2.7
+RUN apt-get update && apt-get install libpcap-dev tcpdump python-crypto libpcap0.7 -qy
+RUN pip install requests scapy
+ADD . /work
+WORKDIR /work
+CMD ["/bin/bash","start.sh"]

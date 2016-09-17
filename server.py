@@ -1,13 +1,9 @@
-import socket
-import struct
-import binascii
 import os
 import requests
 import datetime
+from scapy.all import *
 
-playing = False
-rawSocket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW,
-                          socket.htons(0x0003))
+state = False
 mac = os.environ['MAC']
 url = "https://pitangui.amazon.com/api/np/command"
 deviceSerialNumber = os.environ['SERIAL']
@@ -32,30 +28,23 @@ headers = {
     'cache-control': "no-cache",
     'postman-token': "809faf85-2ea6-d6de-cf2d-0c183f8a76c3"
     }
-def send(playing ):
-  if playing:
+def send():
+  global state
+  if state:
     payload = pausePayload
   else:
     payload = playPayload
   response = requests.request("POST", url, data=payload, headers=headers, params=querystring)
   st = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
   if response.status_code == 200:
-    status = "Paused" if playing else "Now Playing"
-    playing = not playing
+    status = "Paused" if state else "Now Playing"
+    state = not state
     print st, status
   else:
-    print response
-  return playing
-while True:
-    packet = rawSocket.recvfrom(2048)
-    ethernet_header = packet[0][0:14]
-    ethernet_detailed = struct.unpack('!6s6s2s', ethernet_header)
-    arp_header = packet[0][14:42]
-    arp_detailed = struct.unpack('2s2s1s1s2s6s4s6s4s', arp_header)
-    ethertype = ethernet_detailed[2]
-    if ethertype != '\x08\x06':
-        continue
-    source_mac = binascii.hexlify(arp_detailed[5])
-    dest_ip = socket.inet_ntoa(arp_detailed[8])
-    if source_mac == mac:
-        playing = send(playing)
+    print "error: "+ response
+def arp_display(pkt):
+   if pkt[ARP].op ==1:
+    if pkt[ARP].hwsrc == mac:
+      send()
+state = False
+print "sniff", sniff(prn=arp_display, filter="arp", store=0)
