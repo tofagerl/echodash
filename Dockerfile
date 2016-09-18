@@ -1,6 +1,8 @@
 FROM python:2.7
-RUN apt-get update && apt-get install libpcap-dev tcpdump python-crypto libpcap0.7 -qy
-RUN pip install requests scapy
+USER root
+RUN apt-get update && apt-get install libpcap-dev tcpdump python-crypto libpcap0.8 -qy
 ADD . /work
 WORKDIR /work
-CMD ["/bin/bash","start.sh"]
+RUN pip install requests scapy
+RUN mv /usr/sbin/tcpdump /usr/bin/tcpdump
+CMD ["python","server.py"]

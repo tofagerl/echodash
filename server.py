@@ -2,19 +2,16 @@ import os
 import requests
 import datetime
 from scapy.all import *
+from config import *
 
 state = False
-mac = os.environ['MAC']
 url = "https://pitangui.amazon.com/api/np/command"
-deviceSerialNumber = os.environ['SERIAL']
-deviceType = os.environ['DEVICE']
-querystring = {"deviceSerialNumber":deviceSerialNumber,"deviceType":deviceType}
-cookie = os.environ['COOKIE']
+querystring = {"deviceSerialNumber":serial,"deviceType":device}
 pausePayload = "{\"type\":\"PauseCommand\"}"
 playPayload = "{\"type\":\"PlayCommand\"}"
 headers = {
     'origin': "http://alexa.amazon.com",
-    'csrf': os.environ['CSRF'],
+    'csrf': csrf,
     'accept-language': "en-us",
     'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36",
     'content-type': "application/x-www-form-urlencoded; charset=UTF-8",
